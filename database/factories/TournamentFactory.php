@@ -17,7 +17,7 @@ class TournamentFactory extends Factory
      */
     public function definition(): array
     {
-        $name = 'Turnamen Valo ' . fake()->unique()->randomDigit();
+        $name = 'Turnamen Valo ' . fake()->unique()->firstName() . ' ' . fake()->unique()->randomDigit();
         $slug = Str::slug($name, '-');
         return [
             'id_organizer' => random_int(1, 2),
@@ -25,12 +25,14 @@ class TournamentFactory extends Factory
             'slug' => $slug,
             'about' => fake()->paragraph(),
             'rules' => fake()->paragraph(),
-            'prizepool' => 1000000,
+            'prizepool' => random_int(1000000, 10000000),
             'team_slot' => 5,
             'team_category' => '5v5',
             'start_date' => fake()->dateTimeThisYear('+3 months'),
             'start_time' => fake()->time(),
             'tournament_type' => 'auto_join',
+            'status' => '1',
+            'banner_pic' => 'null'
         ];
     }
 }

@@ -6,6 +6,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,31 +15,36 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\User::factory(5)->create();
+        // \App\Models\User::factory(5)->create();
 
         // \App\Models\User::factory()->create([
         //     'username' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
 
-        // DB::table('organizers')->insert(
-        //     [
-        //         [
-        //             'name' => 'LTT Org',
-        //             'description' => 'ini deskripsi',
-        //             'slug' => 'ltt-org',
-        //             'contact' => '081818181818',
-        //         ],
-        //         [
-        //             'name' => 'Anya Org',
-        //             'slug' => 'anya-org',
-        //             'description' => 'ini deskripsi',
-        //             'contact' => '088888888888',
-        //         ]
-        //     ]
-        // );
+        DB::table('organizers')->insert(
+            [
+                [
+                    'name' => 'LTT Org',
+                    'description' => 'ini deskripsi',
+                    'slug' => 'ltt-org',
+                    'contact' => '081818181818',
+                ],
+            ]
+        );
 
-        // \App\Models\Tournament::factory(10)->create();
+        DB::table('organizers')->insert(
+            [
+                [
+                    'name' => 'Tour Organizer',
+                    'description' => 'ini deskripsi',
+                    'slug' => 'tour-organizer',
+                    'contact' => '081818181818',
+                ],
+            ]
+        );
+
+        \App\Models\Tournament::factory(5)->create();
 
         DB::table('users')->insert(
             [
@@ -48,6 +54,26 @@ class DatabaseSeeder extends Seeder
                 'role' => 'Initiator',
                 'password' => bcrypt(12345678),
             ],
+            [
+                'nickname' => 'gin',
+                'email' => 'gin@gmail.com',
+                'slug' => strstr('gin@gmail.com', '@', true),
+                'role' => 'Initiator',
+                'password' => bcrypt(12345678),
+            ],
+        );
+
+        DB::table('users_organizers')->insert(
+            [
+                'user_id' => 1,
+                'organizer_id' => 1,
+                'role' => 'Leader'
+            ],
+            [
+                'user_id' => 1,
+                'organizer_id' => 2,
+                'role' => 'Leader'
+            ]
         );
 
         // Clear Storage
