@@ -16,7 +16,7 @@ class TeamTest extends TestCase
     /**
      * Buat tim
      */
-    public function test_team_create(): void
+    public function test_create_team(): void
     {
         $user = User::firstWhere("nickname", "gun");
 
@@ -43,7 +43,7 @@ class TeamTest extends TestCase
     /**
      * Update tim
      */
-    public function test_team_update()
+    public function test_update_team()
     {
         $user = User::firstWhere("nickname", "gun");
 
@@ -65,7 +65,7 @@ class TeamTest extends TestCase
     /**
      * Delete tim
      */
-    public function test_team_delete()
+    public function test_delete_team()
     {
         $user = User::firstWhere("nickname", "gun");
 
