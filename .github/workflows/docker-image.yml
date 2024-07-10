@@ -1,29 +1,51 @@
-name: Docker Image CI
+name: Laravel CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-
-  build:
-
+  testing:
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4  # Checkout code from your repository
-      - name: Build and Up Services
-        uses: actions/checkout@v2  # Use the compose action
-        with:
-          compose-file: ./docker-compose.yml  # Path to your docker-compose.yml file
-          up-flags: "-d"  # Run services in detached mode (optional)
+    services:
+      mysql:
+        image: mysql:8.0  # Adjust MySQL version if needed
+        env:
+          MYSQL_ROOT_PASSWORD: root  # Replace with a secure password
+          MYSQL_DATABASE: fighton_db  # Customize database name
 
-      - name: Run test
-        uses: actions/checkout@v2  # Use the compose action again
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          compose-file: ./docker-compose.yml  # Path to your docker-compose.yml file
-          service: fighton-web  # Specify the service to run commands in
-          command: cp .env .env.example && php artisan migrate:fresh --seeder=DatabaseSeeder && php artisan test
+          php-version: '8.2'  # Adjust PHP version based on your Laravel requirements
+
+      - name: Copy .env file
+        run: cp .env.example .env
+
+      - name: Install dependencies
+        run: composer install --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+
+      - name: Generate Application Key
+        run: php artisan key:generate
+
+      - name: Grant storage permissions
+        run: chmod -R 777 storage bootstrap/cache
+
+      - name: Configure Database Connection
+        env:
+          DB_CONNECTION: mysql
+          DB_DATABASE: fighton_db  # Matches the service name
+          DB_USERNAME: root
+          DB_PASSWORD: root  # Access secret password
+          DB_PORT: 3306
+        run: php artisan migrate:fresh --seed
+
+      - name: Run Tests
+        run: php artisan test
 
