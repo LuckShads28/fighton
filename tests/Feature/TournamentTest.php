@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Organizer;
+use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -82,5 +83,29 @@ class TournamentTest extends TestCase
             ->assertRedirectToRoute('organizer_tournaments', $organizer->slug);
 
         $this->assertDatabaseMissing('tournaments', ['name' => $data_tournament->name]);
+    }
+
+    public function test_join_tournament(): void
+    {
+        $tournament = Tournament::find(1);
+        $user1 = User::find(1);
+        $user2 = User::find(2);
+        $team1 = Team::find(1);
+        $team2 = Team::find(2);
+
+        $team1_join = [
+            "slug" => $tournament->slug,
+            "teamId" => $team1->id,
+        ];
+
+        $team2_join = [
+            "slug" => $tournament->slug,
+            "teamId" => $team2->id,
+        ];
+
+        $this->actingAs($user1)->post("/tournament/". $tournament->slug ."/select-team", $team1_join)->assertRedirectToRoute("tournament.show", $tournament->slug);
+        $this->actingAs($user2)->post("/tournament/". $tournament->slug ."/select-team", $team2_join)->assertRedirectToRoute("tournament.show", $tournament->slug);
+        $this->assertDatabaseHas('tournament_teams', ["team_id" => $team1->id, "tournament_id" => $tournament->id]);
+        $this->assertDatabaseHas('tournament_teams', ["team_id" => $team2->id, "tournament_id" => $tournament->id]);
     }
 }

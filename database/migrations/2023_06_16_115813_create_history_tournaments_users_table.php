@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('history_tournaments_users', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('id_user')->references('id')->on('users');
             $table->foreignId('id_tournament')->references('id')->on('tournaments');
+            $table->integer('rank')->default(0);
+            $table->string('mvp')->default('no');
+            $table->timestamps();
         });
     }
 

@@ -22,6 +22,7 @@
                         </li>
                         <li><a class="dropdown-item" href="{{ Route::current()->url }}?page=team">Tim</a></li>
                         <li><a class="dropdown-item" href="{{ Route::current()->url }}?page=match">Pertandingan</a></li>
+                        <li><a class="dropdown-item" href="{{ route('bracket', $data->slug) }}">Bracket</a></li>
                     </ul>
                 </div>
             </div>

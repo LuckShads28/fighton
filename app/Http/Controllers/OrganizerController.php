@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Organizer;
 use App\Models\Tournament;
+use App\Models\TournamentTeam;
 use App\Models\UsersOrganizers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -175,10 +176,16 @@ class OrganizerController extends Controller
 
         $organizerData = $data->organizer->first();
 
+        $activeTournament = Tournament::where('id_organizer', $organizerId)->where('status', 'belum_selesai');
+        $activeTournamentTeam = $activeTournament->pluck('id')->toArray();
+        $activeTournamentTeam = TournamentTeam::whereIn('tournament_id', $activeTournamentTeam)->count();
+
         return view('organizer.dashboard', [
             'title' => 'Dashboard ' . $organizerData->name,
             'headerTitle' => 'Dashboard',
-            'organizerData' => $organizerData
+            'organizerData' => $organizerData,
+            'activeTournament' => $activeTournament->count(),
+            'activeTournamentTeam' => $activeTournamentTeam
         ]);
     }
 

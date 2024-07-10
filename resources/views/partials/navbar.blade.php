@@ -6,7 +6,7 @@
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContet">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link {{ $title === 'Turnamen' ? 'active' : '' }}" aria-current="page"
@@ -15,6 +15,10 @@
                 <li class="nav-item">
                     <a class="nav-link {{ $title === 'Tim' ? 'active' : '' }} " aria-current="page"
                         href="{{ route('team.index') }}">Tim</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ $title === 'Leaderboard' ? 'active' : '' }}" aria-current="page"
+                        href="{{ route('leaderboard') }}">Leaderboard</a>
                 </li>
                 <li class="nav-item">
                     @auth
@@ -30,6 +34,11 @@
                             <li>
                                 <a class="dropdown-item" href="{{ route('organizer.index') }}">Kelola Turnamen</a>
                             </li>
+                            @if (Auth::user()->role == 'admin')
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('admin.index') }}">Dashboard Admin</a>
+                                </li>
+                            @endif
                             <li>
                                 <a class="dropdown-item" href="{{ route('logout') }}">Logout</a>
                             </li>

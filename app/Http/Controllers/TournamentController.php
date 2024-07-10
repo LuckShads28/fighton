@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HistoryTournamentsTeam;
+use App\Models\HistoryTournamentsUser;
 use App\Models\Organizer;
 use App\Models\Team;
 use App\Models\Tournament;
@@ -110,24 +112,24 @@ class TournamentController extends Controller
         $registeredTeam = $this->getRegisteredTeam($tournament->id);
 
         if (Auth::user()) {
-            $userTeam = UsersTeams::with(['user', 'team'])->where('user_id', Auth::user()->id);
-            $userTeamIdList = [];
-            foreach ($userTeam->get() as $ut) {
-                array_push($userTeamIdList, $ut->team_id);
-            }
-            $tournamentDt = TournamentTeam::with(['tournament', 'team'])->where('tournament_id', $tournament->id)->whereIn('team_id', $userTeamIdList)->first();
-            // dd($tournamentDt);
-            if ($tournamentDt != null) {
-                $userTeamIdJoinedTournament = $tournamentDt->team_id;
-                $userTeamRole = $userTeam->where('team_id', $userTeamIdJoinedTournament)->first()->role;
-                $userTeamStatus = $tournamentDt->status;
-            } else {
-                if ($userTeam->get()->where('role', 'Leader')->count() > 0) {
-                    $userTeamRole = 'Leader';
+            if ($registeredTeam != $tournament->team_slot) {
+                $userTeam = UsersTeams::with(['user', 'team'])->where('user_id', Auth::user()->id);
+                $userTeamIdList = [];
+                foreach ($userTeam->get() as $ut) {
+                    array_push($userTeamIdList, $ut->team_id);
+                }
+                $tournamentDt = TournamentTeam::with(['tournament', 'team'])->where('tournament_id', $tournament->id)->whereIn('team_id', $userTeamIdList)->first();
+                // dd($tournamentDt);
+                if ($tournamentDt != null) {
+                    $userTeamIdJoinedTournament = $tournamentDt->team_id;
+                    $userTeamRole = $userTeam->where('team_id', $userTeamIdJoinedTournament)->first()->role;
+                    $userTeamStatus = $tournamentDt->status;
+                } else {
+                    if ($userTeam->get()->where('role', 'Leader')->count() > 0) {
+                        $userTeamRole = 'Leader';
+                    }
                 }
             }
-
-            // dd($userTeamRole === 'Leader');
         }
 
         return view('tournament-detail', [
@@ -138,6 +140,31 @@ class TournamentController extends Controller
             'team' => $team,
             'registeredTeam' => $registeredTeam
         ]);
+    }
+
+    private function getRound($id)
+    {
+        $teamSlot = Tournament::where('id', $id)->pluck('team_slot')->first();
+        $totalRound = 0;
+        while (true) {
+            $totalRound += 1;
+            $teamSlot = $teamSlot / 2;
+            if ($teamSlot == 1) {
+                break;
+            }
+        }
+        // $tournamentSlot = Tournament::find($id)->pluck('team_slot')->first();
+        // $totalRound = 1;
+
+        // while ($tournamentSlot > 0) {
+        //     $totalRound += 1;
+        //     $tournamentSlot /= 2;
+        //     if ($tournamentSlot == 1) {
+        //         break;
+        //     }
+        // }
+
+        return $totalRound;
     }
 
     /**
@@ -152,15 +179,32 @@ class TournamentController extends Controller
                     'title' => 'Edit ' . $tournamentData->name
                 ]);
             } else if (request('page') == 'match') {
-                $matchData = TournamentMatch::with(['team1', 'team2'])->where('tournament_id', $tournamentData->id)->get();
-                // dd($matchData[0]->team1->name);
+                $matchData = TournamentMatch::with(['team1', 'team2'])->where('tournament_id', $tournamentData->id)->where('round', 1)->get();
+                $round = $this->getRound($tournamentData->id);
+                $nextRoundCount = TournamentMatch::where('tournament_id', $tournamentData->id)->where('round', 2)->count();
                 return view('tournament.edit-match', [
                     'title' => 'Edit ' . $tournamentData->name,
                     'tournamentData' => $tournamentData,
-                    'matchData' => $matchData
+                    'matchData' => $matchData,
+                    'round' => $round,
+                    'nextRoundCount' => $nextRoundCount
                 ]);
             }
         }
+
+        if (request('round')) {
+            $matchData = TournamentMatch::with(['team1', 'team2'])->where('tournament_id', $tournamentData->id)->where('round', request('round'))->get();
+            $round = $this->getRound($tournamentData->id);
+            $nextRoundCount = TournamentMatch::where('tournament_id', $tournamentData->id)->where('round', 2)->count();
+            return view('tournament.edit-match', [
+                'title' => 'Edit ' . $tournamentData->name,
+                'tournamentData' => $tournamentData,
+                'matchData' => $matchData,
+                'round' => $round,
+                'nextRoundCount' => $nextRoundCount
+            ]);
+        }
+
         return view('tournament.edit', [
             'title' => 'Edit ' . $tournamentData->name,
             'data' => $tournamentData,
@@ -240,12 +284,64 @@ class TournamentController extends Controller
             $status = 0;
         }
 
-        TournamentTeam::create([
+        //get team member data
+        $teamMember = Team::with('users')->find($request->teamId);
+
+        foreach ($teamMember->users as $tm) {
+            // dd($tm);
+            if ($tm->status == 1) {
+                HistoryTournamentsUser::create([
+                    'id_user' => $tm->user_id,
+                    'id_tournament' => $tournament->id
+                ]);
+            }
+        }
+
+        $t = TournamentTeam::create([
             'team_id' => $request->teamId,
             'tournament_id' => $tournament->id,
             'status' => $status
         ]);
 
+        $team = Team::find($request->teamId);
+
+        HistoryTournamentsTeam::create([
+            'team_id' => $request->teamId,
+            'tournament_id' => $tournament->id,
+            'duelist' => $team->duelist,
+            'initiator' => $team->initiator,
+            'sentinel' => $team->sentinel,
+            'controller' => $team->controller,
+            'sub_1' => $team->sub_1,
+            'sub_2' => $team->sub_2,
+        ]);
+
         return redirect()->route('tournament.show', $slug);
+    }
+
+    public function bracket($slug)
+    {
+        $tournamentData = Tournament::where('slug', $slug)->first();
+
+        return view('tournament.tournament-bracket', [
+            'title' => 'Bracket ' . $tournamentData->name,
+            'data' => $tournamentData
+        ]);
+    }
+
+    public function postData(Request $request)
+    {
+        $team = [];
+        $tr = $request->teams;
+        for ($i = 0; $i < count($request->teams); $i++) {
+            // dd(explode(',', $tr[$i]));
+            array_push($team, [explode(',', $tr[$i])]);
+        }
+        $score = [];
+        $ts = $request->score;
+        for ($i = 0; $i < count($request->score); $i++) {
+            array_push($score, [explode(',', $ts[$i])]);
+        }
+        dd($score);
     }
 }
