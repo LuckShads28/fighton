@@ -77,4 +77,33 @@ class TeamTest extends TestCase
 
         $this->assertDatabaseMissing('teams', ['id' => $team_data->id]);
     }
+
+    public function test_join_team()
+    {
+        $user = User::create([
+            "nickname" => "mylog2828",
+            "slug" => "mylog2828",
+            "email" => "mylog@gmail.com",
+            "password" => bcrypt(12345678),
+            "role" => "Controller"
+        ]);
+        $team = Team::firstWhere('name', 'Winner Team');
+
+        $this->actingAs($user)->get("/team/". $team->slug ."/request/" . $user->slug)->assertRedirectToRoute('team.show', $team->slug);
+    }
+
+    public function test_approve_team_join()
+    {
+        $team = Team::firstWhere('name', 'Winner Team');
+        $user = User::firstWhere("nickname", "mylog2828");
+        $teamLeader = User::firstWhere("nickname", "gun");
+
+        $data = [
+            "teamId" => $team->id,
+            "userId" => $user->id,
+            "status" => 1
+        ];
+
+        $this->actingAs($teamLeader)->post("/team/". $team->slug ."/response", $data)->assertRedirectToRoute("edit_anggota", $team->slug);
+    }
 }

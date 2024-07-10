@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HistoryTeamAction;
 use App\Models\Team;
 use App\Models\TournamentTeam;
 use App\Models\User;
@@ -67,7 +68,6 @@ class TeamController extends Controller
             'name' => 'required|min:6|max:20|unique:teams',
             'description' => 'required|min:6|max:200',
             'logo_img' => 'required|image|file|max:1000',
-            // 'banner_img' => 'required|mimes:jpg,jpeg,png|max:5096'
             'banner_img' => 'required|image|file|max:5096'
         ]);
         $validatedData['slug'] = $slug;
@@ -261,8 +261,6 @@ class TeamController extends Controller
     {
         $team = Team::where('id', $request->teamId)->first();
         $user = User::where('id', $request->userId)->first();
-        // dd($user->nickname);
-        // dd($user->nickname);
         $userTeam = UsersTeams::where('user_id', $request->userId)->where('team_id', $request->teamId);
         if ($userTeam->count() < 7) {
             if ($request->status == 1) {
@@ -295,9 +293,18 @@ class TeamController extends Controller
                         'sub_2' => $user->id
                     ]);
                 }
+                HistoryTeamAction::create([
+                    'team_id' => $team->id,
+                    'action' => $user->nickname . ' Masuk kedalam tim'
+                ]);
+            }
+            if ($request->status == 2) {
+                HistoryTeamAction::create([
+                    'team_id' => $team->id,
+                    'action' => $user->nickname . ' Ditolak masuk kedalam tim'
+                ]);
             }
             if ($request->status == 3) {
-                // dd($request->userId == $team->initiator);
                 if ($request->userId == $team->initiator) {
                     $team->update([
                         'initiator' => null
@@ -327,17 +334,112 @@ class TeamController extends Controller
                         'sub_2' => null
                     ]);
                 }
-                // dd($team->initiator === $request->userId);
-                // if ($team->intiator === $request->userId) {
-                //     dd('HAPUS');
-                // }
+                HistoryTeamAction::create([
+                    'team_id' => $team->id,
+                    'action' => $user->nickname . ' Dikeluarkan dari tim'
+                ]);
             }
         }
-        // $userTeam->update(['status' => $request->status]);
         UsersTeams::where('user_id', $request->userId)
             ->where('team_id', $request->teamId)
             ->update(['status' => $request->status]);
 
         return redirect()->route('edit_anggota', $team->slug);
+    }
+
+    private function getCurrentSlot($slug, $id)
+    {
+        $team = Team::where('slug', $slug)->first();
+        if ($team->initiator == $id) {
+            return 'initiator';
+        } else if ($team->controller == $id) {
+            return 'controller';
+        } else if ($team->sentinel == $id) {
+            return 'sentinel';
+        } else if ($team->duelist == $id) {
+            return 'duelist';
+        } else if ($team->player_5 == $id) {
+            return 'player_5';
+        } else if ($team->sub_1 == $id) {
+            return 'sub_1';
+        } else if ($team->sub_2 == $id) {
+            return 'sub_2';
+        }
+    }
+
+    public function changeSlot(Request $request, $slug)
+    {
+        $selectedSlot = $request->slot;
+        $user = User::where('slug', $request->userSlug)->first();
+        // dd($user);
+        $userId = $user->id;
+        $userRole = $user->role;
+        $currentUserSlot = $this->getCurrentSlot($slug, $userId);
+        $team = Team::where('slug', $slug)->first();
+
+        if ($selectedSlot == 'initiator' && $userRole == 'Initiator') {
+            $oldSlotUserId = $team->initiator;
+            $team->update([
+                'initiator' => $userId,
+                $currentUserSlot => $oldSlotUserId
+            ]);
+        } else if ($selectedSlot == 'duelist' && $userRole == 'Duelist') {
+            $oldSlotUserId = $team->duelist;
+            $team->update([
+                'duelist' => $userId,
+                $currentUserSlot => $oldSlotUserId
+            ]);
+        } else if ($selectedSlot == 'controller' && $userRole == 'Controller') {
+            $oldSlotUserId = $team->controller;
+            $team->update([
+                'controller' => $userId,
+                $currentUserSlot => $oldSlotUserId
+            ]);
+        } else if ($selectedSlot == 'sentinel' && $userRole == 'Sentinel') {
+            $oldSlotUserId = $team->senetinel;
+            $team->update([
+                'sentinel' => $userId,
+                $currentUserSlot => $oldSlotUserId
+            ]);
+        } else if ($selectedSlot == 'player_5') {
+            $oldSlotUserId = $team->player_5;
+            $oldSlotUserRole = null;
+            if ($oldSlotUserId) {
+                $oldSlotUserRole = User::find($oldSlotUserId)->role;
+            }
+            $team->update([
+                'player_5' => $userId,
+                $currentUserSlot => $oldSlotUserId
+            ]);
+        } else if ($selectedSlot == 'sub_1') {
+            $oldSlotUserId = $team->sub_1;
+            $team->update([
+                'sub_1' => $userId,
+                $currentUserSlot => $oldSlotUserId
+            ]);
+        } else if ($selectedSlot == 'sub_2') {
+            $oldSlotUserId = $team->sub_2;
+            $team->update([
+                'sub_2' => $userId,
+                $currentUserSlot => $oldSlotUserId
+            ]);
+        } else {
+            return 'role tidak sesuai';
+        }
+
+        return redirect()->back();
+    }
+
+    public function logs($slug)
+    {
+        $data = Team::where('slug', $slug)->first();
+        $logData = HistoryTeamAction::where('team_id', $data->id)->get();
+
+        return view('teams.log', [
+            'slug' => $slug,
+            'logData' => $logData,
+            'data' => $data,
+            'title' => 'Logs '
+        ]);
     }
 }

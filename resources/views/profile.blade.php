@@ -26,6 +26,10 @@
                     <div class="ms-md-auto align-self-center">
                         <a href="{{ route('profile.edit', Auth::user()->slug) }}" class="btn btn-custom">Pengaturan Akun</a>
                     </div>
+                    <div class="align-self-center ms-2">
+                        <a href="{{ route('user_dashboard', Auth::user()->slug) }}" class="btn btn-custom">Dashboard
+                            Akun</a>
+                    </div>
                 </div>
             </div>
 
@@ -47,7 +51,50 @@
         <div class="tab-content" id="nav-tabContent">
             <div class="tab-pane fade show active" id="nav-history-tournaments" role="tabpanel"
                 aria-labelledby="nav-history-tournaments-tab" tabindex="0">
-                <h1 class="text-white-half text-center">Tidak ada history</h1>
+                @if ($tournamentData->count() > 0)
+                    @foreach ($tournamentData as $td)
+                        <div class="col-md-3">
+                            <?php
+                            $rank = $td->rank;
+                            if ($td->mvp == 'yes') {
+                                $mvp = 'Ya';
+                            } else {
+                                $mvp = 'Tidak';
+                            }
+                            ?>
+                            @foreach ($td->tournament as $t)
+                                <a href="{{ route('tournament.show', $t->slug) }}">
+                                    <div class="card mb-4 bg-custom-primary-2">
+                                        <div class="card-body">
+                                            <div class="container">
+                                                <div class="row text-white align-items-center">
+                                                    <div class="col-4">
+                                                        <img src="{{ asset('/' . 'assets/img/organizer-profile.jpeg') }}"
+                                                            alt="logo_aog"
+                                                            style="width: 100%; object-fit: cover; border-radius: 50%" />
+                                                    </div>
+                                                    <div class="col-8" style="line-height: 0">
+                                                        <h5 class="fw-bold">
+                                                            {{ $t->name }}
+                                                        </h5>
+                                                        <p class="fw-bold text-white-half my-3">
+                                                            Rank: #{{ $rank }}
+                                                        </p>
+                                                        <p class="fw-bold text-white-half my-3">
+                                                            MVP: {{ $mvp }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endforeach
+                @else
+                    <h1 class="text-white-half text-center">Tidak ada history</h1>
+                @endif
             </div>
             <div class="tab-pane fade" id="nav-teams" role="tabpanel" aria-labelledby="nav-teams-tab" tabindex="0">
                 <div class="d-flex justify-content-end">

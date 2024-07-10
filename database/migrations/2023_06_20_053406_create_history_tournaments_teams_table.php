@@ -15,14 +15,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('team_id')->references('id')->on('teams');
             $table->foreignId('tournament_id')->references('id')->on('tournaments');
-            $table->foreignId('duelist')->references('id')->on('users');
-            $table->foreignId('initiator')->references('id')->on('users');
-            $table->foreignId('controller')->references('id')->on('users');
-            $table->foreignId('name')->references('id')->on('users');
-            $table->foreignId('player_5')->references('id')->on('users');
-            $table->foreignId('sub_1')->references('id')->on('users');
-            $table->foreignId('sub_2')->references('id')->on('users');
-            $table->integer('rank');
+            $table->foreignId('duelist')->nullable()->references('id')->on('users');
+            $table->foreignId('initiator')->nullable()->references('id')->on('users');
+            $table->foreignId('controller')->nullable()->references('id')->on('users');
+            $table->foreignId('sentinel')->nullable()->references('id')->on('users');
+            $table->foreignId('player_5')->nullable()->references('id')->on('users');
+            $table->foreignId('sub_1')->nullable()->references('id')->on('users');
+            $table->foreignId('sub_2')->nullable()->references('id')->on('users');
+            $table->integer('rank')->default(0);
+            $table->timestamps();
         });
     }
 

@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name', 50)->unique();
             $table->string('slug')->unique();
             $table->string('description', 50);
-            $table->string('logo_img')->default('team-default-pic.jpg');
-            $table->string('banner_img')->default('team-default-bg.jpg');
+            $table->string('logo_img')->nullable()->default('team-default-pic.jpg');
+            $table->string('banner_img')->nullable()->default('team-default-bg.jpg');
             $table->foreignId('duelist')->nullable()->references('id')->on('users');
             $table->foreignId('initiator')->nullable()->references('id')->on('users');
             $table->foreignId('controller')->nullable()->references('id')->on('users');

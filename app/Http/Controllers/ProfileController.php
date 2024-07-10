@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HistoryTournamentsUser;
 use App\Models\User;
+use App\Models\UsersOrganizers;
 use App\Models\UsersTeams;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,13 +24,13 @@ class ProfileController extends Controller
         if (!Auth::user()) {
             return redirect()->to('/')->withErrors('Login terlebih dahulu untuk melihat profile');
         }
-        // $data = User::with('teams')->where('id', Auth::user()->id)->first();
         $userId = Auth::user()->id;
         $teamList = UsersTeams::with('team')->where('user_id', $userId)->where('status', 1)->get();
-        // dd($teamList->all());
+        $tournamentData = HistoryTournamentsUser::with('tournament')->where('id_user', Auth::user()->id)->get();;
         return view('profile', [
             'title' => 'Profile',
-            'teamList' => $teamList
+            'teamList' => $teamList,
+            'tournamentData' => $tournamentData,
         ]);
     }
 
@@ -109,5 +111,21 @@ class ProfileController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function dashboard(string $slug)
+    {
+        $history = HistoryTournamentsUser::where('id_user', Auth::user()->id);
+        $joinedTournament = $history->count();
+        $tournamentWin = $history->where('rank', 1)->orWhere('rank', 2)->orWhere('rank', 3)->count();
+        $team = UsersTeams::where('user_id', Auth::user()->id)->where('status', 1)->count();
+        $organizer = UsersOrganizers::where('user_id', Auth::user()->id)->count();
+        return view('user.dashboard', [
+            'title' => 'Dashboard ' . Auth::user()->nickname,
+            'turnamenDiikuti' => $joinedTournament,
+            'turnamenDimenangkan' => $tournamentWin,
+            'tim' => $team,
+            'organizer' => $organizer
+        ]);
     }
 }

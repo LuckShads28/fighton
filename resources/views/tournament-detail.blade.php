@@ -1,6 +1,10 @@
 @extends('layout')
 
 @section('content')
+    @push('css')
+        <link rel="stylesheet" href="{{ asset('/') }}assets/vendor/bracket/jquery.bracket.min.css">
+    @endpush
+
     <img src="{{ asset('storage/' . $tournament->banner_pic) }}" class="img-fluid" alt="Responsive image"
         style="height: 350px; object-fit: cover">
     </div>
@@ -124,13 +128,32 @@
             </div>
             <div class="tab-pane fade" id="nav-bracket" role="tabpanel" aria-labelledby="nav-bracket-tab"
                 tabindex="0">
-                <div class="p-5">
-                    <h5 class="text-center text-white-half">Belum ada bracket</h5>
-                </div>
+                <div id="bracket"></div>
             </div>
             <div class="tab-pane fade" id="nav-kontak" role="tabpanel" aria-labelledby="nav-kontak-tab" tabindex="0">
                 {{ $tournament->organizer->contact }}
             </div>
         </div>
     </div>
+
+    @push('script')
+        <script src="{{ asset('/') }}assets/vendor/bracket/jquery.bracket.min.js"></script>
+        <script>
+            var id = {{ $tournament->id }}
+            $(function() {
+                $.get("http://127.0.0.1:8000/bracket/get/" + id, function(data) {
+                    console.log(data)
+                    var container = $('div#bracket')
+                    container.bracket({
+                        skipConsolationRound: true,
+                        init: data,
+                    })
+                    var data = container.bracket('data')
+                });
+
+                /* You can also inquiry the current data */
+                // $('#dataOutput').text(jQuery.toJSON(data))
+            })
+        </script>
+    @endpush
 @endsection

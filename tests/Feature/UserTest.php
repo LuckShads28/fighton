@@ -77,16 +77,18 @@ class UserTest extends TestCase
      */
     public function test_update_data_profile(): void
     {
-        $user = User::firstWhere("nickname", "testing");
+        $user = User::where("nickname", "testing")->get();
 
-        if(!$user){
-            User::create([
+        if($user->count() == 0){
+            $user = User::create([
                 "nickname" => "testing",
                 "email" => "testing@gmail.com",
                 "role" => "Controller",
                 "slug" => "testing",
                 "password" => bcrypt(12345678)
             ]);
+        }else{
+            $user = $user->first();
         }
 
         # ubah role ke initiator

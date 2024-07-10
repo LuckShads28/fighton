@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('match_details', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('match_id')->references('id')->on('tournament_matches')->cascadeOnDelete();
+            $table->foreignId('team_id')->nullable()->references('id')->on('teams')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->references('id')->on('users')->cascadeOnDelete();
+            $table->integer('kill')->default(0);
+            $table->integer('death')->default(0);
+            $table->integer('assist')->default(0);
+            $table->integer('acs')->default(0);
             $table->timestamps();
         });
     }

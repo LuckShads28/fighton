@@ -14,6 +14,8 @@
                     aria-current="page"
                     href="{{ Route::currentRouteName() !== 'edit_cadangan' ? route('edit_cadangan', $slug) : '#' }}">Atur
                     Cadangan</a>
+                <a href="{{ Route::currentRouteName() !== 'team_logs' ? route('team_logs', $slug) : '#' }}">Log
+                    History</a>
             </li>
             <li class="nav-item">
                 <form action="{{ route('team.destroy', $data->id) }}" method="POST">
