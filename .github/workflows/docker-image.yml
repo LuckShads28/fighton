@@ -15,7 +15,7 @@ jobs:
         image: mysql:8.0  # Adjust MySQL version if needed
         env:
           MYSQL_ROOT_PASSWORD: root  # Replace with a secure password
-          MYSQL_DATABASE: fighton_db  # Customize database name
+          MYSQL_DATABASE: fighton  # Customize database name
 
     steps:
       - uses: actions/checkout@v2
@@ -40,11 +40,11 @@ jobs:
       - name: Configure Database Connection
         env:
           DB_CONNECTION: mysql
-          DB_DATABASE: fighton_db  # Matches the service name
+          DB_DATABASE: fighton  # Matches the service name
           DB_USERNAME: root
           DB_PASSWORD: root  # Access secret password
           DB_PORT: 3306
-        run: php artisan migrate:fresh --seed
+        run: php artisan migrate:fresh --seeder=DatabaseSeeder
 
       - name: Run Tests
         run: php artisan test
