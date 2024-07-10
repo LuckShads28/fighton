@@ -1,0 +1,29 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4  # Checkout code from your repository
+      - name: Build and Up Services
+        uses: hoverkraft-tech/compose-action@v2  # Use the compose action
+        with:
+          compose-file: ./docker-compose.yml  # Path to your docker-compose.yml file
+          up-flags: "-d"  # Run services in detached mode (optional)
+
+      - name: Run test
+        uses: hoverkraft-tech/compose-action@v2  # Use the compose action again
+        with:
+          compose-file: ./docker-compose.yml  # Path to your docker-compose.yml file
+          service: fighton-web  # Specify the service to run commands in
+          command: cp .env .env.example && php artisan migrate:fresh --seeder=DatabaseSeeder && php artisan test
+
