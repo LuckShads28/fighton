@@ -27,12 +27,12 @@ jobs:
       - name: Build the image (with context)
         run: |
           docker build \
-            -t your-image-name \
+            -t fighton-web \
             --build-arg MYSQL_HOST=mysql \
             --build-arg MYSQL_PORT=3306 \
-            .  # Replace with your actual image name
+            . 
 
       - name: Test the image (optional)
         run: |
-          docker run --rm your-image-name \
-            php artisan migrate:fresh  # Replace with your actual test command
+          docker run --rm fighton-web \
+            php artisan migrate:fresh
