@@ -43,3 +43,6 @@ jobs:
 
     - name: Run Test suite
       run: php artisan test
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
