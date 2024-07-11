@@ -45,4 +45,12 @@ jobs:
       run: php artisan test
 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      run: |
+        docker build . --file Dockerfile --tag my-image-name:latest
+        docker save my-image-name:latest > ./my-image-name.tar
+    
+    - uses: actions/upload-artifact@v4
+      with:
+        name: docker-artifact
+        path: ./my-image-name.tar
+    
