@@ -26,14 +26,6 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Cache composer dependencies
-      uses: actions/cache@v2
-      with:
-        path: vendor
-        key: composer-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          composer-
-
     - name: Install PHP
       uses: shivammathur/setup-php@v2
       with:
@@ -47,6 +39,7 @@ jobs:
       run: |
         cp .env.ci .env
         php artisan key:generate
+        php artisan migrate:fresh --seeder=DatabaseSeeder
 
     - name: Run Test suite
       run: php artisan test
