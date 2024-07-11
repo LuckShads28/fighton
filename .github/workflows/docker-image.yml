@@ -1,0 +1,38 @@
+name: Build Image with MySQL
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0  # Adjust the version as needed
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+        ports:
+          - 3306:3306
+        options:
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build the image (with context)
+        run: |
+          docker build \
+            -t fighton-web \
+            --build-arg MYSQL_HOST=mysql \
+            --build-arg MYSQL_PORT=3306 \
+            . 
+
+      - name: Test the image (optional)
+        run: |
+          docker run --rm fighton-web \
+            php artisan migrate:fresh
